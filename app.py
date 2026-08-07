@@ -123,6 +123,9 @@ def proxy(service_name, subpath):
 
     url = f"{cfg['base_url']}/{subpath}"
     headers = {"X-Internal-Auth": INTERNAL_AUTH_TOKEN}
+    incoming_auth = request.headers.get("Authorization")
+    if incoming_auth:
+        headers["Authorization"] = incoming_auth
 
     try:
         if request.method == "GET":
