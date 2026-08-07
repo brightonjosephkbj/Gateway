@@ -127,16 +127,20 @@ def proxy(service_name, subpath):
     if incoming_auth:
         headers["Authorization"] = incoming_auth
 
+    # 950s matches Downloads' own worst-case (yt-dlp + video enhance can take
+    # up to ~900s) - the old 30s cap silently killed any real fetch/trending
+    # scrape before the backend even finished.
+    PROXY_TIMEOUT = 950
     try:
         if request.method == "GET":
-            resp = requests.get(url, params=request.args, headers=headers, timeout=30)
+            resp = requests.get(url, params=request.args, headers=headers, timeout=PROXY_TIMEOUT)
         elif request.method == "DELETE":
-            resp = requests.delete(url, params=request.args, headers=headers, timeout=30)
+            resp = requests.delete(url, params=request.args, headers=headers, timeout=PROXY_TIMEOUT)
         else:
             resp = requests.request(
                 request.method, url,
                 json=request.get_json(silent=True),
-                params=request.args, headers=headers, timeout=30,
+                params=request.args, headers=headers, timeout=PROXY_TIMEOUT,
             )
     except requests.RequestException as e:
         return jsonify({"error": f"'{service_name}' service unreachable: {str(e)}"}), 502
