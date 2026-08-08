@@ -57,6 +57,10 @@ SERVICES = {
         "base_url": os.environ.get("B24_AI_SERVICE_URL", ""),
         "health_path": "/ping",
     },
+    "apicache": {
+        "base_url": os.environ.get("B24_APICACHE_SERVICE_URL", ""),
+        "health_path": "/",
+    },
 }
 
 
