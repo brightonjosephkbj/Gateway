@@ -140,11 +140,27 @@ def proxy(service_name, subpath):
     # up to ~900s) - the old 30s cap silently killed any real fetch/trending
     # scrape before the backend even finished.
     PROXY_TIMEOUT = 950
+    is_multipart = request.content_type and "multipart/form-data" in request.content_type
+
     try:
         if request.method == "GET":
             resp = requests.get(url, params=request.args, headers=headers, timeout=PROXY_TIMEOUT)
         elif request.method == "DELETE":
             resp = requests.delete(url, params=request.args, headers=headers, timeout=PROXY_TIMEOUT)
+        elif is_multipart:
+            # Forward uploaded files + form fields as-is. Don't set
+            # Content-Type manually - requests builds the correct multipart
+            # boundary header itself from the files= dict.
+            files = {
+                name: (f.filename, f.stream, f.mimetype)
+                for name, f in request.files.items()
+            }
+            resp = requests.request(
+                request.method, url,
+                files=files,
+                data=request.form.to_dict(),
+                params=request.args, headers=headers, timeout=PROXY_TIMEOUT,
+            )
         else:
             resp = requests.request(
                 request.method, url,
