@@ -2,9 +2,9 @@
 b24-gateway
 The one service every B24 app calls. Doesn't do real work itself - looks at
 the request, decides which backing service should handle it, forwards it,
-and returns the response. Backing services (fetch, db, downloads, ota, ai)
-are never called directly by an app; they only trust requests carrying this
-gateway's internal auth header.
+and returns the response. Backing services (fetch, db, downloads, ota,
+messenger, apicache) are never called directly by an app; they only trust
+requests carrying this gateway's internal auth header.
 
 Why this exists: B24music, Messenger, Browser, Scanner each used to talk to
 their own backend directly, each with its own copy of auth.py / ota.py /
@@ -17,6 +17,11 @@ Two layers of auth:
   - GATEWAY -> BACKING SERVICE: gateway attaches X-Internal-Auth so a
     backing service can tell the request actually came through the
     gateway, not directly from the open internet.
+
+Note: Messenger's real-time features (Socket.IO chat, WebRTC signaling)
+are NOT proxied here - clients connect to Messenger's socket endpoint
+directly, since a plain HTTP proxy can't forward a persistent WebSocket
+connection. Only Messenger's plain REST routes go through the gateway.
 """
 
 import os
@@ -53,9 +58,9 @@ SERVICES = {
         "base_url": os.environ.get("B24_OTA_SERVICE_URL", ""),
         "health_path": "/ping",
     },
-    "ai": {
-        "base_url": os.environ.get("B24_AI_SERVICE_URL", ""),
-        "health_path": "/ping",
+    "messenger": {
+        "base_url": os.environ.get("B24_MESSENGER_SERVICE_URL", ""),
+        "health_path": "/",
     },
     "apicache": {
         "base_url": os.environ.get("B24_APICACHE_SERVICE_URL", ""),
