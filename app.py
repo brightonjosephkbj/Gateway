@@ -135,6 +135,13 @@ def proxy(service_name, subpath):
     incoming_auth = request.headers.get("Authorization")
     if incoming_auth:
         headers["Authorization"] = incoming_auth
+    # Forward expo-updates client headers - required for the ota service
+    # to build a correct manifest (platform, runtime version, protocol, etc).
+    for h in ("expo-protocol-version", "expo-platform", "expo-runtime-version",
+              "expo-current-update-id", "expo-embedded-update-id", "expo-expect-signature"):
+        val = request.headers.get(h)
+        if val is not None:
+            headers[h] = val
 
     # 950s matches Downloads' own worst-case (yt-dlp + video enhance can take
     # up to ~900s) - the old 30s cap silently killed any real fetch/trending
