@@ -135,6 +135,14 @@ def proxy(service_name, subpath):
     incoming_auth = request.headers.get("Authorization")
     if incoming_auth:
         headers["Authorization"] = incoming_auth
+    # Forward the OTA server's own admin auth header - without this,
+    # /api/ota/admin/* routes always see no key at all and reject every
+    # request as unauthorized, even with a correct X-Admin-Key from the
+    # caller (this was silently dropped before, since only expo-* headers
+    # and Authorization were forwarded).
+    incoming_admin_key = request.headers.get("X-Admin-Key")
+    if incoming_admin_key:
+        headers["X-Admin-Key"] = incoming_admin_key
     # Forward expo-updates client headers - required for the ota service
     # to build a correct manifest (platform, runtime version, protocol, etc).
     for h in ("expo-protocol-version", "expo-platform", "expo-runtime-version",
