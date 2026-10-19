@@ -66,6 +66,10 @@ SERVICES = {
         "base_url": os.environ.get("B24_APICACHE_SERVICE_URL", ""),
         "health_path": "/",
     },
+    "sync": {
+        "base_url": os.environ.get("B24_SYNC_SERVICE_URL", ""),
+        "health_path": "/ping",
+    },
 }
 
 
